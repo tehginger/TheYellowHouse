@@ -9,7 +9,7 @@ namespace TheYellowHouse
 		private string roomDescription;
 		private List<Exit> exits;
 		private List<Item> inventory;
-		
+		private List<Enemy> enemies;
 		
 		public Location()
 		{
@@ -110,6 +110,11 @@ namespace TheYellowHouse
 		public void setDescription(string description)
 		{
 			roomDescription = description;
+		}
+
+		public void addEnemy(Enemy enemyToAdd)
+		{
+			enemies.Add(enemyToAdd);
 		}
 	}
 }

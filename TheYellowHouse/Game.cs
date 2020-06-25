@@ -109,6 +109,8 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             l2.addItem(window);
 
             Location l3 = new Location("Small study", "This is a small and cluttered study, containing a desk covered with\npapers. Though they no doubt are of some importance,\nyou cannot read their writing");
+            Enemy darkOne = new Enemy("Dark One", 30, 12, "An evil wizard dressed in black.", true);
+            l3.addEnemy(darkOne);
 
             l1.addExit(new Exit(Exit.Directions.North, l2));
             l1.addExit(new Exit(Exit.Directions.East, l3));
@@ -385,7 +387,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             return false;
         }
 
-
+        //Move this to player class
         private void showInventory()
         {
             if (inventory.Count > 0)
@@ -414,6 +416,9 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 return;
             }
 
+            //check if in combat
+            //if so run enemy combat
+            //then continue to check if dead / game over / wait for next command 
 
             if (!_gameOver)
             {
