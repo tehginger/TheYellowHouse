@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TheYellowHouse
 {
@@ -34,6 +35,7 @@ namespace TheYellowHouse
 			roomDescription = description;
 			exits = new List<Exit>();
 			inventory = new List<Item>();
+			enemies = new List<Enemy>();
 		}
 
 		public override string ToString()
@@ -115,6 +117,11 @@ namespace TheYellowHouse
 		public void addEnemy(Enemy enemyToAdd)
 		{
 			enemies.Add(enemyToAdd);
+		}
+
+		public List<Enemy> getEnemies()
+		{
+			return new List<Enemy>(enemies);
 		}
 	}
 }

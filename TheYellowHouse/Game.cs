@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 
 namespace TheYellowHouse
 {
@@ -14,13 +15,12 @@ namespace TheYellowHouse
 
         public bool isRunning = true;
         private bool _gameOver = false;
+        Player player = new Player(60, 10, true);
+        Random rnd = new Random();
 
-        private List<Item> inventory;
 
         public Game()
         {
-            inventory = new List<Item>();
-
             Console.SetWindowSize(150, 57);
 
 
@@ -138,6 +138,15 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     Console.WriteLine(currentLocation.getInventory()[i].Name);
                 }
             }
+            if (currentLocation.getEnemies().Count > 0)
+            {
+                Console.WriteLine("\nA creature shares the room with you:\n");
+
+                for (int i = 0; i < currentLocation.getEnemies().Count; i++)
+                {
+                    Console.WriteLine(currentLocation.getEnemies()[i].Name);
+                }
+            }
 
             Console.WriteLine("\nAvailable Exits: \n");
 
@@ -152,13 +161,14 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
         //Input handling algorithm
         public void doAction(string command)
         {
-            //Help command is NEW
-            if (command == "help" || command == "h")
+            //help command
+            //expand to be more like Zork's help menu
+            //it includes finer details about the parser among other user things for new users to know about the game
+            if (command.ToLower() == "help" || command.ToLower() == "h")
             {
                 Console.WriteLine("Welcome to this Text Adventure!");
                 Console.WriteLine("'l' / 'look':        Shows you the room, its exits, and any items it contains.");
                 Console.WriteLine("'Look at X':         Gives you information about a specific item in your \n                     inventory, where X is the items name.");
-                Console.WriteLine("'pick up X':         Attempts to pick up an item, where X is the item's name.");
                 Console.WriteLine("'take x':            Attempts to take an item, where X is the item's name");
                 Console.WriteLine("'use X':             Attempts to use an item, where X is the items name.");
                 Console.WriteLine("'i' / 'inventory':   Allows you to see the items in your inventory.");
@@ -168,41 +178,15 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 return;
             }
 
-            //If statement to access the player inventory
-            //This can't be changed a great deal
-            if (command == "inventory" || command == "i")
+            //show player inventory
+            if (command.ToLower() == "inventory" || command.ToLower() == "i")
             {
-                showInventory();
+                player.showInventory();
                 Console.WriteLine();
                 return;
             }
 
-            //If statement for player to pick up objects
-            if (command.Length >= 7 && command.Substring(0, 7) == "pick up")
-            {
-                if (command == "pick up")
-                {
-                    Console.WriteLine("\nPlease specify what you would like to pick up.\n");
-                    return;
-                }
-                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(8)) && currentLocation.getInventory().Exists(x => x.Useable == true))
-                {
-                    inventory.Add(currentLocation.takeItem(command.Substring(8)));
-                    Console.WriteLine("\nYou pick up the " + command.Substring(8) + ".\n");
-                    return;
-                }
-                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(8)) && currentLocation.getInventory().Exists(x => x.Useable == false))
-                {
-                    Console.WriteLine("\nYou cannot pick up the " + command.Substring(8) + ".\n");
-                    return;
-                }
-                else
-                {
-                    Console.WriteLine("\n" + command.Substring(8) + " does not exist.\n");
-                    return;
-                }
-            }
-            // additional "pick up" command that annoys me less, may remove normal "pick up" command
+            //take command
             if (command.Length >= 4 && command.ToLower().Substring(0,4) == "take")
             {
                 if (command.ToLower() == "take")
@@ -212,7 +196,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 }
                 if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(5)) && currentLocation.getInventory().Exists(x => x.Useable == true))
                 {
-                    inventory.Add(currentLocation.takeItem(command.Substring(5)));
+                    player.addItem(currentLocation.takeItem(command.Substring(5)));
                     Console.WriteLine("\nYou take the " + command.Substring(5) + ".\n");
                     return;
                 }
@@ -228,7 +212,8 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 }
             }
 
-            if (command == "look" || command == "l")
+            //look command
+            if (command.ToLower() == "look" || command.ToLower() == "l")
             {
                 showLocation();
                 if (currentLocation.getInventory().Count == 0)
@@ -237,15 +222,17 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 }
                 return;
             }
-
-            if (command.Length >= 7 && command.Substring(0, 7) == "look at")
+            // make this a question that just accepts an item next like the plain "use" command
+            if (command.ToLower() == "look at")
             {
-                if (command == "look at")
-                {
-                    Console.WriteLine("\nPlease specify what you wish to look at.\n");
-                    return;
-                }
-                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(8)) || inventory.Exists(x => x.Name == command.ToLower().Substring(8)))
+                Console.WriteLine("\nPlease specify what you wish to look at when using this command.\n");
+                return;
+            }
+            // would like to remove the need to have "at" in the look at command, but removing right now messes with specified substring ranges
+            // may change to contain method
+            if (command.ToLower().Contains("look at"))
+            {
+                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(8)) || player.inventory.Exists(x => x.Name == command.ToLower().Substring(8)))
                 {
                     if (command.Substring(8).ToLower() == "rock")
                     {
@@ -265,52 +252,54 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                         return;
                     }
                 }
+                if (currentLocation.getEnemies().Exists(x => x.Name.ToLower() == command.ToLower().Substring(8)))
+                {
+                    Console.WriteLine("\n" + currentLocation.getEnemies().Find(x => x.Name.ToLower().Contains("dark one")).Description + "\n");
+                    return;
+                }
                 else
                 {
-                    Console.WriteLine("\nThat item does not exist in this location or your inventory.\n");
+                    Console.WriteLine("\nThat does not exist in this location or your inventory.\n");
                     return;
                 }
             }
 
+            // use command
+            //WIP:  i like the more dynamic way of parsing with the contain method within expected ranges
             if (command.Length >= 3 && command.ToLower().Substring(0, 3) == "use")
             {
                 if (command.ToLower() == "use")
                 {
-                    Console.WriteLine("\nPlease specify what you wish to use.\n");
+                    Console.WriteLine("\nPlease specify what you wish to use when using this command\n");
                     return;
                 }
-                // Mostly works, want to break this into a more robust system that will write out the part of the entered command to say what isn't found
-                if (command.ToLower().Contains("with"))
+                //check for both items in user input first
+                if (command.ToLower().Substring(3,11).Contains("rock") == true && command.ToLower().Substring(7).Contains("window") == true)
                 {
-                    if (inventory.Exists(x => x.Name == command.ToLower().Substring(4, 4)))
+                    if (player.inventory.Exists(x => x.Name == "rock") == true && currentLocation.getInventory().Exists(x => x.Name == "window"))
                     {
-                        if (command.ToLower().Substring(4, 4) == "rock" && command.ToLower().Substring(14) == "window")
+                        Item smashedWindow = new Item("smashed window", false, "A window frame with broken pieces of glass inside.");
+                        currentLocation.addItem(smashedWindow);
+                        foreach (Item item in currentLocation.getInventory())
                         {
-                            Item smashedWindow = new Item("smashed window", false, "A window frame with broken pieces of glass inside.");
-                            currentLocation.addItem(smashedWindow);
-                            foreach (Item item in currentLocation.getInventory())
+                            if (item.Name.ToLower() == "window")
                             {
-                                if (item.Name.ToLower() == "window")
-                                {
-                                    currentLocation.removeItem(item);
-                                    break;
-                                }
-
-                                if (item.Name.ToLower() == "rock")
-                                {
-                                    currentLocation.removeItem(item);
-                                    break;
-                                }
-
+                                currentLocation.removeItem(item);
+                                break;
                             }
-                            Console.WriteLine("\nYou smash in the window.\n");
-                            return;
+
+                            if (item.Name.ToLower() == "rock")
+                            {
+                                currentLocation.removeItem(item);
+                                break;
+                            }
                         }
+                        Console.WriteLine("\nYou smash in the window.\n");
+                        return;
                     }
-                    Console.WriteLine("\nCouldn't find" + command.Substring(4) + "\n");
-                    return;
                 }
-                if (inventory.Exists(x => x.Name == command.ToLower().Substring(4)))
+                //check for an existing single item player inventory from user input
+                if (player.inventory.Exists(x => x.Name == command.ToLower().Substring(4)))
                 {
                     Console.WriteLine("\nUse " + command.Substring(4) + " with?\n");
                     string secondItem = Console.ReadLine();
@@ -339,12 +328,8 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                             return;
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine("Cannot do the thing.");
-                        return;
-                    }
                 }
+                //check for an existing single item in current location from user input
                 if (currentLocation.getInventory().Exists(x => x.Name == command.ToLower().Substring(4)))
                 {
                     if (command.ToLower().Substring(4) == "window")
@@ -361,14 +346,15 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 }
                 else
                 {
-                    Console.WriteLine("\nThere is nothing to use.\n");
+                    Console.WriteLine("Cannot do that.");
                     return;
                 }
             }
-
+            //move command
             if (moveRoom(command))
                 return;
 
+            //no matching commands
             Console.WriteLine("\nInvalid command, are you confused?\n");
         }
 
@@ -386,23 +372,11 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             }
             return false;
         }
-
-        //Move this to player class
-        private void showInventory()
+        private int diceRoll(int sides)
         {
-            if (inventory.Count > 0)
-            {
-                Console.WriteLine("\nA quick look in your bag reveals the following:\n");
-
-                foreach (Item item in inventory)
-                {
-                    Console.WriteLine(item.Name);
-                }
-            }
-            else
-            {
-                Console.WriteLine("\nYour bag is empty.\n");
-            }
+            int dieResult;
+            dieResult = rnd.Next(1, sides);
+            return dieResult;
         }
 
         public void Update()

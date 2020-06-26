@@ -6,11 +6,11 @@ namespace TheYellowHouse
 {
     class Enemy
     {
-        string name;
-        int health;
-        int armorClass;
-        string description;
-        bool isAlive;
+        private string name;
+        private int health;
+        private int armorClass;
+        private string description;
+        private bool isAlive;
 
 
         public Enemy(string _name, int _health, int _armorClass, string _description, bool _isAlive)

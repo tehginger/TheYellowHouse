@@ -6,16 +6,19 @@ namespace TheYellowHouse
 {
     class Player
     {
-        int health;
-        int armorClass;
-        bool isAlive;
-		private List<Item> inventory;
+        private int health;
+        private int armorClass;
+        private bool isAlive;
+		public List<Item> inventory;
+        
+
 
 		public Player(int _health, int _armorClass, bool _isAlive)
         {
             health = _health;
             armorClass = _armorClass;
             isAlive = _isAlive;
+            inventory = new List<Item>();
         }
 
         public int Health
@@ -35,7 +38,7 @@ namespace TheYellowHouse
 
 
         //This may be wrong
-        private void showInventory()
+        public void showInventory()
         {
             if (inventory.Count > 0)
             {
