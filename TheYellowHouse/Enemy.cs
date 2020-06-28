@@ -9,15 +9,17 @@ namespace TheYellowHouse
         private string name;
         private int health;
         private int armorClass;
+        private int damage;
         private string description;
         private bool isAlive;
 
 
-        public Enemy(string _name, int _health, int _armorClass, string _description, bool _isAlive)
+        public Enemy(string _name, int _health, int _armorClass, int _damage, string _description, bool _isAlive)
         {
             name = _name;
             health = _health;
             armorClass = _armorClass;
+            damage = _damage;
             description = _description;
             isAlive = _isAlive;
         }
@@ -32,9 +34,19 @@ namespace TheYellowHouse
             get { return health; }
         }
 
+        public void setHealth(int amount)
+        {
+            health = amount;
+        }
+
         public int ArmorClass
         {
             get { return armorClass; }
+        }
+
+        public int Damage
+        {
+            get { return damage; }
         }
 
         public string Description
@@ -45,6 +57,11 @@ namespace TheYellowHouse
         public bool IsAlive
         {
             get { return isAlive; }
+        }
+
+        public void setAlive(bool status)
+        {
+            isAlive = status;
         }
     }
 }

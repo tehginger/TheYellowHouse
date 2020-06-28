@@ -8,15 +8,17 @@ namespace TheYellowHouse
     {
         private int health;
         private int armorClass;
+        private int damage;
         private bool isAlive;
 		public List<Item> inventory;
         
 
 
-		public Player(int _health, int _armorClass, bool _isAlive)
+		public Player(int _health, int _armorClass, int _damage, bool _isAlive)
         {
             health = _health;
             armorClass = _armorClass;
+            damage = _damage;
             isAlive = _isAlive;
             inventory = new List<Item>();
         }
@@ -31,9 +33,19 @@ namespace TheYellowHouse
             get { return armorClass; }
         }
 
+        public int Damage
+        {
+            get { return damage; }
+        }
+
         public bool IsAlive
         {
             get { return isAlive; }
+        }
+
+        public void setHealth(int amount)
+        {
+            health = amount;
         }
 
 

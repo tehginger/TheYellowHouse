@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Runtime.CompilerServices;
 
 namespace TheYellowHouse
 {
@@ -15,8 +16,9 @@ namespace TheYellowHouse
 
         public bool isRunning = true;
         private bool _gameOver = false;
-        Player player = new Player(60, 10, true);
+        Player player = new Player(50, 10, 20, true);
         Random rnd = new Random();
+        bool justMoved = false;
 
 
         public Game()
@@ -109,7 +111,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             l2.addItem(window);
 
             Location l3 = new Location("Small study", "This is a small and cluttered study, containing a desk covered with\npapers. Though they no doubt are of some importance,\nyou cannot read their writing");
-            Enemy darkOne = new Enemy("Dark One", 30, 12, "An evil wizard dressed in black.", true);
+            Enemy darkOne = new Enemy("Dark One", 30, 12, 7, "An evil wizard dressed in black.", true);
             l3.addEnemy(darkOne);
 
             l1.addExit(new Exit(Exit.Directions.North, l2));
@@ -138,6 +140,14 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     Console.WriteLine(currentLocation.getInventory()[i].Name);
                 }
             }
+
+            Console.WriteLine("\nAvailable Exits: \n");
+
+            foreach (Exit exit in currentLocation.getExits())
+            {
+                Console.WriteLine(exit.getDirection());
+            }
+
             if (currentLocation.getEnemies().Count > 0)
             {
                 Console.WriteLine("\nA creature shares the room with you:\n");
@@ -146,13 +156,6 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 {
                     Console.WriteLine(currentLocation.getEnemies()[i].Name);
                 }
-            }
-
-            Console.WriteLine("\nAvailable Exits: \n");
-
-            foreach (Exit exit in currentLocation.getExits())
-            {
-                Console.WriteLine(exit.getDirection());
             }
 
             Console.WriteLine();
@@ -176,6 +179,45 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 Console.WriteLine();
                 Console.WriteLine("Directions can be input as either the full word, or the abbriviation, \ne.g. 'North or N'");
                 return;
+            }
+
+            if (command.ToLower() == "attack")
+            {
+                Console.WriteLine("\nPlease specify what you want to attack.\n");
+                return;
+            }
+            if (command.Length >= 6 && command.ToLower().Substring(0,6) == "attack")
+            {
+                if (currentLocation.getEnemies().Exists(x => x.Name.ToLower() == command.ToLower().Substring(7)) && currentLocation.getEnemies().Exists(x => x.IsAlive == true))
+                {
+                    int roll = diceRoll(20);
+
+                    foreach (Enemy enemy in currentLocation.getEnemies()) if (currentLocation.getEnemies().Exists(x => x.Name.ToLower() == command.ToLower().Substring(7)))
+                    {
+                            if (roll > enemy.ArmorClass)
+                            {
+                                enemy.setHealth(enemy.Health - player.Damage);
+                                Console.WriteLine("You attack the " + enemy.Name + " for " + player.Damage + ".");
+                                if (enemy.Health <= 0)
+                                {
+                                    enemy.setAlive(false);
+                                    Console.WriteLine("The " + enemy.Name + " is dead.");
+                                }
+
+                            }
+                            else
+                            {
+                                Console.WriteLine("You try to attack the " + enemy.Name + ", but miss.");
+                            }
+                            break;
+                    }
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("\nCan't attack that.\n");
+                    return;
+                }
             }
 
             //show player inventory
@@ -367,6 +409,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     currentLocation = exit.getLeadsTo();
                     Console.WriteLine("\nYou move " + exit.ToString() + " to the:\n");
                     showLocation();
+                    justMoved = true;
                     return true;
                 }
             }
@@ -390,21 +433,53 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 return;
             }
 
-            //check if in combat
-            //if so run enemy combat
-            //then continue to check if dead / game over / wait for next command 
-
             if (!_gameOver)
             {
                 // otherwise, process commands.
                 Console.WriteLine("\n-------------------------------------------------------------------------------\n");
+                justMoved = false;
                 doAction(currentCommand);
+
+                //check for enemy combat
+                if (currentLocation.getEnemies().Count > 0 && justMoved == false)
+                {
+
+                    foreach (Enemy enemy in currentLocation.getEnemies()) if (currentLocation.getEnemies().Exists(x => x.IsAlive == true))
+                        {
+                            int roll = diceRoll(20);
+
+
+                            if (roll > player.ArmorClass)
+                            {
+                                Console.WriteLine("The " + enemy.Name + " hit you for " + enemy.Damage);
+                                player.setHealth(player.Health - enemy.Damage);
+                                Console.WriteLine("Your health is now:  " + player.Health);
+                            }
+                            else
+                            {
+                                Console.WriteLine("The " + enemy.Name + " attempts to attack you, but misses.");
+                            }
+
+                            if (player.Health <= 0)
+                            {
+                                Console.WriteLine("\n\nOh dear!  You're dead.");
+                                _gameOver = true;
+                                break;
+                            }
+                        }
+                }
                 Console.Write("\n>");
             }
             else
             {
-                Console.WriteLine("\nNope. Time to quit.\n");
+                Console.WriteLine("Game Over.  Press a key to close the game...\n");
+                Console.ReadKey();
+                isRunning = false;
+                return;
             }
+
+
+
         }
     }
 }
