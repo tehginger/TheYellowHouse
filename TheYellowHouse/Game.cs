@@ -16,7 +16,7 @@ namespace TheYellowHouse
 
         public bool isRunning = true;
         private bool _gameOver = false;
-        Player player = new Player(50, 10, 20, true);
+        Player player = new Player(50, 8, 3, "empty", "empty", "empty", "empty");
         Random rnd = new Random();
         bool justMoved = false;
 
@@ -104,14 +104,18 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             // build the "map"
             Location l1 = new Location("Entrance to hall", "You stand at the entrance of a long hallway. The hallways gets darker\nand darker, and you cannot see what lies beyond. To the east\nis an old oaken door, unlocked and beckoning.");
             Item rock = new Item("rock", true, "A rather jagged rock, slightly smaller than a fist.");
+            Item helmet = new Item("helmet", true, 4, "helm", "A shiny golden helmet.  What is something so nice doing down here?");
             l1.addItem(rock);
+            l1.addItem(helmet);
 
             Location l2 = new Location("End of hall", "You have reached the end of a long dark hallway. You can\nsee nowhere to go but back.");
             Item window = new Item("window", false, "A single sheet of glass. It seems sealed up.");
+            Item knife = new Item("knife", true, 5, "weapon", "A dull rusty knife, better than nothing I suppose. Damage: 1d6");
             l2.addItem(window);
+            l2.addItem(knife);
 
             Location l3 = new Location("Small study", "This is a small and cluttered study, containing a desk covered with\npapers. Though they no doubt are of some importance,\nyou cannot read their writing");
-            Enemy darkOne = new Enemy("Dark One", 30, 12, 7, "An evil wizard dressed in black.", true);
+            Enemy darkOne = new Enemy("Dark One", 10, 12, 7, "An evil wizard dressed in black.", true);
             l3.addEnemy(darkOne);
 
             l1.addExit(new Exit(Exit.Directions.North, l2));
@@ -154,8 +158,14 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
 
                 for (int i = 0; i < currentLocation.getEnemies().Count; i++)
                 {
-                    Console.WriteLine(currentLocation.getEnemies()[i].Name);
+                    Console.Write(currentLocation.getEnemies()[i].Name);
+                    if (currentLocation.getEnemies()[i].IsAlive == false)
+                    {
+                        Console.Write(" (Dead)");
+                    }
+                    Console.Write("\n");
                 }
+                Console.Write("\n");
             }
 
             Console.WriteLine();
@@ -181,6 +191,20 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 return;
             }
 
+            //character command
+            if (command.ToLower() == "character" || command.ToLower() == "c")
+            {
+                Console.WriteLine("\nPlayer Health: " + player.Health);
+                Console.WriteLine("Armor Class: " + player.ArmorClass);
+                Console.WriteLine("Max Damage Potential: " + player.Damage);
+                Console.WriteLine("Helm: " + player.Helm);
+                Console.WriteLine("Armor: " + player.Armor);
+                Console.WriteLine("Boots: " + player.Boots);
+                Console.WriteLine("Weapon: " + player.Weapon);
+                return;
+            }
+
+            //attack command
             if (command.ToLower() == "attack")
             {
                 Console.WriteLine("\nPlease specify what you want to attack.\n");
@@ -196,11 +220,12 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     {
                             if (roll > enemy.ArmorClass)
                             {
-                                enemy.setHealth(enemy.Health - player.Damage);
-                                Console.WriteLine("You attack the " + enemy.Name + " for " + player.Damage + ".");
+                                int damage = diceRoll(player.Damage);
+                                enemy.Health -= damage;
+                                Console.WriteLine("You attack the " + enemy.Name + " for " + damage + ".");
                                 if (enemy.Health <= 0)
                                 {
-                                    enemy.setAlive(false);
+                                    enemy.IsAlive = false;
                                     Console.WriteLine("The " + enemy.Name + " is dead.");
                                 }
 
@@ -228,6 +253,161 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 return;
             }
 
+            //equip command
+            if (command.Length >= 5 && command.ToLower().Substring(0,5) == "equip")
+            {
+                if (command.ToLower() == "equip")
+                {
+                    Console.WriteLine("\nPlease specify what you would like to equip.\n");
+                    return;
+                }
+                if (currentLocation.getInventory().Exists(x => x.Name == command.ToLower().Substring(6)))
+                {
+                    var item = currentLocation.getInventory().First(x => x.Name == command.ToLower().Substring(6));
+
+                    if (item.Equipable == true)
+                    {
+                        if (item.Type == "helm")
+                        {
+                            if (player.Helm == "empty")
+                            {
+                                player.Helm = item.Name;
+                                player.ArmorClass += item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = currentLocation.getInventory().Find(x => x.Name == player.Helm);
+                                player.Helm = item.Name;
+                                player.ArmorClass -= oldItem.Rating + item.Rating;
+                            }
+                        }
+                        if (item.Type == "armor")
+                        {
+                            if (player.Armor == "empty")
+                            {
+                                player.Armor = item.Name;
+                                player.ArmorClass += item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = currentLocation.getInventory().Find(x => x.Name == player.Armor);
+                                player.Armor = item.Name;
+                                player.ArmorClass -= oldItem.Rating + item.Rating;
+                            }
+                        }
+                        if (item.Type == "boots")
+                        {
+                            if (player.Boots == "empty")
+                            {
+                                player.Boots = item.Name;
+                                player.ArmorClass += item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = currentLocation.getInventory().Find(x => x.Name == player.Boots);
+                                player.Boots = item.Name;
+                                player.ArmorClass -= oldItem.Rating + item.Rating;
+                            }
+                        }
+                        if (item.Type == "weapon")
+                        {
+                            if (player.Weapon == "empty")
+                            {
+                                player.Boots = item.Name;
+                                player.Damage = item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = currentLocation.getInventory().Find(x => x.Name == player.Weapon);
+                                player.Weapon = item.Name;
+                                player.Damage = item.Rating;
+                            }
+                        }
+                        Console.WriteLine("\nYou equip the " + command.Substring(6) + "\n");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nYou can't equip that.\n");
+                    }
+                    return;
+                }
+                if (player.getInventory().Exists(x => x.Name == command.ToLower().Substring(6)))
+                {
+                    var item = player.getInventory().First(x => x.Name == command.ToLower().Substring(6));
+
+                    if (item.Equipable == true)
+                    {
+                        if (item.Type == "helm")
+                        {
+                            if (player.Helm == "empty")
+                            {
+                                player.Helm = item.Name;
+                                player.ArmorClass += item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = player.getInventory().Find(x => x.Name == player.Helm);
+                                player.Helm = item.Name;
+                                player.ArmorClass -= oldItem.Rating + item.Rating;
+                            }
+                        }
+                        if (item.Type == "armor")
+                        {
+                            if (player.Armor == "empty")
+                            {
+                                player.Armor = item.Name;
+                                player.ArmorClass += item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = player.getInventory().Find(x => x.Name == player.Armor);
+                                player.Armor = item.Name;
+                                player.ArmorClass -= oldItem.Rating + item.Rating;
+                            }
+                        }
+                        if (item.Type == "boots")
+                        {
+                            if (player.Boots == "empty")
+                            {
+                                player.Boots = item.Name;
+                                player.ArmorClass += item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = player.getInventory().Find(x => x.Name == player.Boots);
+                                player.Boots = item.Name;
+                                player.ArmorClass -= oldItem.Rating + item.Rating;
+                            }
+                        }
+                        if (item.Type == "weapon")
+                        {
+                            if (player.Weapon == "empty")
+                            {
+                                player.Boots = item.Name;
+                                player.Damage = item.Rating;
+                            }
+                            else
+                            {
+                                var oldItem = player.getInventory().Find(x => x.Name == player.Weapon);
+                                player.Weapon = item.Name;
+                                player.Damage = item.Rating;
+                            }
+                        }
+                        Console.WriteLine("\nYou equip the " + command.Substring(6) + "\n");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nYou can't equip that.\n");
+                    }
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("\nCan't equip the " + command.Substring(6) + "\n");
+                    return;
+                }
+            }
+
             //take command
             if (command.Length >= 4 && command.ToLower().Substring(0,4) == "take")
             {
@@ -236,13 +416,13 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     Console.WriteLine("\nPlease specify what you would like to pick up.\n");
                     return;
                 }
-                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(5)) && currentLocation.getInventory().Exists(x => x.Useable == true))
+                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(5)) && (currentLocation.getInventory().Exists(x => x.Useable == true) || currentLocation.getInventory().Exists(x => x.Equipable == true)))
                 {
                     player.addItem(currentLocation.takeItem(command.Substring(5)));
                     Console.WriteLine("\nYou take the " + command.Substring(5) + ".\n");
                     return;
                 }
-                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(5)) && currentLocation.getInventory().Exists(x => x.Useable == false))
+                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(5)) && (currentLocation.getInventory().Exists(x => x.Useable == false) || currentLocation.getInventory().Exists(x => x.Equipable == false)))
                 {
                     Console.WriteLine("\nYou cannot take the " + command.Substring(5) + ".\n");
                     return;
@@ -270,29 +450,19 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 Console.WriteLine("\nPlease specify what you wish to look at when using this command.\n");
                 return;
             }
-            // would like to remove the need to have "at" in the look at command, but removing right now messes with specified substring ranges
-            // may change to contain method
             if (command.ToLower().Contains("look at"))
             {
-                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(8)) || player.inventory.Exists(x => x.Name == command.ToLower().Substring(8)))
+                if (currentLocation.getInventory().Exists(x => x.Name == command.Substring(8)))
                 {
-                    if (command.Substring(8).ToLower() == "rock")
-                    {
-                        Console.WriteLine("\n" + currentLocation.getInventory().Find(x => x.Name.Contains("rock")).Description + "\n");
-                        return;
-                    }
-
-                    if (command.Substring(8).ToLower() == "window")
-                    {
-                        Console.WriteLine("\n" + currentLocation.getInventory().Find(x => x.Name.Contains("window")).Description + "\n");
-                        return;
-                    }
-
-                    if (command.Substring(8).ToLower() == "smashed window")
-                    {
-                        Console.WriteLine("\n" + currentLocation.getInventory().Find(x => x.Name.Contains("smashed window")).Description + "\n");
-                        return;
-                    }
+                    var item = currentLocation.getInventory().First(x => x.Name == command.Substring(8));
+                    Console.WriteLine("\n" + item.Description + "\n");
+                    return;
+                }
+                if (player.inventory.Exists(x => x.Name == command.ToLower().Substring(8)))
+                {
+                    var item = currentLocation.getInventory().First(x => x.Name == command.Substring(8));
+                    Console.WriteLine("\n" + item.Description + "\n");
+                    return;
                 }
                 if (currentLocation.getEnemies().Exists(x => x.Name.ToLower() == command.ToLower().Substring(8)))
                 {
@@ -307,7 +477,6 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             }
 
             // use command
-            //WIP:  i like the more dynamic way of parsing with the contain method within expected ranges
             if (command.Length >= 3 && command.ToLower().Substring(0, 3) == "use")
             {
                 if (command.ToLower() == "use")
@@ -316,28 +485,31 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     return;
                 }
                 //check for both items in user input first
-                if (command.ToLower().Substring(3,11).Contains("rock") == true && command.ToLower().Substring(7).Contains("window") == true)
+                if (command.Length >= 14)
                 {
-                    if (player.inventory.Exists(x => x.Name == "rock") == true && currentLocation.getInventory().Exists(x => x.Name == "window"))
+                    if (command.ToLower().Substring(3, 11).Contains("rock") == true && command.ToLower().Substring(7).Contains("window") == true)
                     {
-                        Item smashedWindow = new Item("smashed window", false, "A window frame with broken pieces of glass inside.");
-                        currentLocation.addItem(smashedWindow);
-                        foreach (Item item in currentLocation.getInventory())
+                        if (player.inventory.Exists(x => x.Name == "rock") == true && currentLocation.getInventory().Exists(x => x.Name == "window"))
                         {
-                            if (item.Name.ToLower() == "window")
+                            Item smashedWindow = new Item("smashed window", false, "A window frame with broken pieces of glass inside.");
+                            currentLocation.addItem(smashedWindow);
+                            foreach (Item item in currentLocation.getInventory())
                             {
-                                currentLocation.removeItem(item);
-                                break;
-                            }
+                                if (item.Name.ToLower() == "window")
+                                {
+                                    currentLocation.removeItem(item);
+                                    break;
+                                }
 
-                            if (item.Name.ToLower() == "rock")
-                            {
-                                currentLocation.removeItem(item);
-                                break;
+                                if (item.Name.ToLower() == "rock")
+                                {
+                                    currentLocation.removeItem(item);
+                                    break;
+                                }
                             }
+                            Console.WriteLine("\nYou smash in the window.\n");
+                            return;
                         }
-                        Console.WriteLine("\nYou smash in the window.\n");
-                        return;
                     }
                 }
                 //check for an existing single item player inventory from user input
@@ -422,6 +594,39 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             return dieResult;
         }
 
+        private void runCombat()
+        {
+            //checks for enemies in current location, moves on if none are here
+            if (currentLocation.getEnemies().Count > 0 && justMoved == false)
+            {
+
+                foreach (Enemy enemy in currentLocation.getEnemies()) if (currentLocation.getEnemies().Exists(x => x.IsAlive == true))
+                    {
+                        int roll = diceRoll(20);
+
+
+                        if (roll > player.ArmorClass)
+                        {
+                            int damage = diceRoll(enemy.Damage);
+                            Console.WriteLine("The " + enemy.Name + " hit you for " + damage);
+                            player.Health -= damage;
+                            Console.WriteLine("Your health is now:  " + player.Health);
+                        }
+                        else
+                        {
+                            Console.WriteLine("The " + enemy.Name + " attempts to attack you, but misses.");
+                        }
+
+                        if (player.Health <= 0)
+                        {
+                            Console.WriteLine("\n\nOh dear!  You're dead.");
+                            _gameOver = true;
+                            break;
+                        }
+                    }
+            }
+        }
+
         public void Update()
         {
             string currentCommand = Console.ReadLine().ToLower();
@@ -440,34 +645,9 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 justMoved = false;
                 doAction(currentCommand);
 
-                //check for enemy combat
-                if (currentLocation.getEnemies().Count > 0 && justMoved == false)
-                {
-
-                    foreach (Enemy enemy in currentLocation.getEnemies()) if (currentLocation.getEnemies().Exists(x => x.IsAlive == true))
-                        {
-                            int roll = diceRoll(20);
-
-
-                            if (roll > player.ArmorClass)
-                            {
-                                Console.WriteLine("The " + enemy.Name + " hit you for " + enemy.Damage);
-                                player.setHealth(player.Health - enemy.Damage);
-                                Console.WriteLine("Your health is now:  " + player.Health);
-                            }
-                            else
-                            {
-                                Console.WriteLine("The " + enemy.Name + " attempts to attack you, but misses.");
-                            }
-
-                            if (player.Health <= 0)
-                            {
-                                Console.WriteLine("\n\nOh dear!  You're dead.");
-                                _gameOver = true;
-                                break;
-                            }
-                        }
-                }
+                //run enemy combat
+                runCombat();
+               
                 Console.Write("\n>");
             }
             else
@@ -477,9 +657,6 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 isRunning = false;
                 return;
             }
-
-
-
         }
     }
 }

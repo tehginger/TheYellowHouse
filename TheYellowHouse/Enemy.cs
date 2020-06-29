@@ -32,11 +32,7 @@ namespace TheYellowHouse
         public int Health
         {
             get { return health; }
-        }
-
-        public void setHealth(int amount)
-        {
-            health = amount;
+            set { health = value; }
         }
 
         public int ArmorClass
@@ -57,11 +53,7 @@ namespace TheYellowHouse
         public bool IsAlive
         {
             get { return isAlive; }
-        }
-
-        public void setAlive(bool status)
-        {
-            isAlive = status;
+            set { isAlive = value; }
         }
     }
 }

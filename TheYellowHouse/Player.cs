@@ -6,50 +6,66 @@ namespace TheYellowHouse
 {
     class Player
     {
-        private int health;
-        private int armorClass;
-        private int damage;
-        private bool isAlive;
+        private int health, armorClass, damage;
+        private string helm, armor, boots, weapon;
 		public List<Item> inventory;
         
 
 
-		public Player(int _health, int _armorClass, int _damage, bool _isAlive)
+		public Player(int _health, int _armorClass, int _damage, string _helm, string _armor, string _boots, string _weapon)
         {
             health = _health;
             armorClass = _armorClass;
             damage = _damage;
-            isAlive = _isAlive;
+            helm = _helm;
+            armor = _armor;
+            boots = _boots;
+            weapon = _weapon;
             inventory = new List<Item>();
         }
 
         public int Health
         {
             get { return health; }
+            set { health = value; }
         }
 
         public int ArmorClass
         {
             get { return armorClass; }
+            set { armorClass = value; }
         }
 
         public int Damage
         {
             get { return damage; }
+            set { damage = value; }
         }
 
-        public bool IsAlive
+        public string Helm
         {
-            get { return isAlive; }
+            get { return helm; }
+            set { helm = value; }
         }
 
-        public void setHealth(int amount)
+        public string Armor
         {
-            health = amount;
+            get { return armor; }
+            set { armor = value; }
         }
 
+        public string Boots
+        {
+            get { return boots; }
+            set { boots = value; }
+        }
 
-        //This may be wrong
+        public string Weapon
+        {
+            get { return weapon; }
+            set { weapon = value; }
+        }
+
         public void showInventory()
         {
             if (inventory.Count > 0)
