@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Runtime.CompilerServices;
 
 namespace TheYellowHouse
 {
@@ -13,12 +9,15 @@ namespace TheYellowHouse
     {
 
         Location currentLocation;
-
         public bool isRunning = true;
         private bool _gameOver = false;
-        Player player = new Player(50, 8, 3, "empty", "empty", "empty", "empty");
+        private bool justMoved = false;
+        private int score = 0;
+        private int moves = 0;
         Random rnd = new Random();
-        bool justMoved = false;
+
+        //initialize player
+        Player player = new Player(50, 8, 3, "empty", "empty", "empty", "empty");
 
 
         public Game()
@@ -115,7 +114,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
             l2.addItem(knife);
 
             Location l3 = new Location("Small study", "This is a small and cluttered study, containing a desk covered with\npapers. Though they no doubt are of some importance,\nyou cannot read their writing");
-            Enemy darkOne = new Enemy("Dark One", 10, 12, 7, "An evil wizard dressed in black.", true);
+            Enemy darkOne = new Enemy("Dark One", 10, 12, 7, "An evil wizard dressed in black.", true, 50);
             l3.addEnemy(darkOne);
 
             l1.addExit(new Exit(Exit.Directions.North, l2));
@@ -201,8 +200,47 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                 Console.WriteLine("Armor: " + player.Armor);
                 Console.WriteLine("Boots: " + player.Boots);
                 Console.WriteLine("Weapon: " + player.Weapon);
+                Console.WriteLine("\nScore: " + score);
+                Console.WriteLine("Moves: " + moves + "\n\n");
                 return;
             }
+
+            //save command
+            if (command.ToLower() == "save")
+            {
+                List<Location> locationsList = new List<Location>();
+
+                //probably turn this into save file dialog box
+                string dir = @"c:\Users\theginger\Desktop";
+                string saveFile = Path.Combine(dir, "save.ginger");
+
+                //add each class one by one with a "," delimeter
+                using (Stream stream = File.Open(saveFile, FileMode.Create))
+                {
+                    var bformatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                    bformatter.Serialize(stream, locationsList);
+                }
+                //then read individual stored values (current location, etc)
+                return;
+            }
+
+            //restore command
+            if (command.ToLower() == "restore")
+            {
+                //change to load file dialog box
+                string dir = @"c:\Users\theginger\Desktop";
+                string saveFile = Path.Combine(dir, "save.ginger");
+
+
+                //read each class one by one after seperating off the delimeter
+                using (Stream stream = File.Open(saveFile, FileMode.Open))
+                {
+                    var bformatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+
+                    List<Location> Location = (List<Location>)bformatter.Deserialize(stream);
+                }
+            }
+
 
             //attack command
             if (command.ToLower() == "attack")
@@ -227,6 +265,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                                 {
                                     enemy.IsAlive = false;
                                     Console.WriteLine("The " + enemy.Name + " is dead.");
+                                    score += enemy.Score;
                                 }
 
                             }
@@ -508,6 +547,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                                 }
                             }
                             Console.WriteLine("\nYou smash in the window.\n");
+                            score += 25;
                             return;
                         }
                     }
@@ -539,6 +579,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
 
                             }
                             Console.WriteLine("\nYou smash in the window.\n");
+                            score += 25;
                             return;
                         }
                     }
@@ -554,6 +595,7 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
                     if (command.ToLower().Substring(4) == "smashed window")
                     {
                         Console.WriteLine("\nYou clamber out the window. Victory is yours!");
+                        score += 100;
                         _gameOver = true;
                         return;
                     }
@@ -631,31 +673,41 @@ c::cccccllccloddddddddddl. .;'.............,. .lxxxdddxdc:c:cdkkkkkkkd' .;,',,''
         {
             string currentCommand = Console.ReadLine().ToLower();
 
-            // instantly check for a quit
-            if (currentCommand == "quit" || currentCommand == "q")
+            //parse out multiple commands
+            char[] delimeterChars = { ',' };
+            string[] commands = currentCommand.Split(delimeterChars);
+            
+            foreach (string command in commands)
             {
-                isRunning = false;
-                return;
-            }
+                moves++;
 
-            if (!_gameOver)
-            {
-                // otherwise, process commands.
-                Console.WriteLine("\n-------------------------------------------------------------------------------\n");
-                justMoved = false;
-                doAction(currentCommand);
+                // instantly check for a quit
+                if (command == "quit" || command == "q")
+                {
+                    isRunning = false;
+                    return;
+                }
 
-                //run enemy combat
-                runCombat();
-               
-                Console.Write("\n>");
-            }
-            else
-            {
-                Console.WriteLine("Game Over.  Press a key to close the game...\n");
-                Console.ReadKey();
-                isRunning = false;
-                return;
+                if (!_gameOver)
+                {
+                    // otherwise, process commands.
+                    Console.WriteLine("\n-------------------------------------------------------------------------------\n");
+                    justMoved = false;
+                    doAction(command);
+
+                    //run enemy combat
+                    runCombat();
+
+                    Console.Write("\n>");
+                }
+                else
+                {
+                    Console.WriteLine("Game Over.  Score: " + score + "  Moves:  " + moves);
+                    Console.WriteLine("Press a key to close the game...");
+                    Console.ReadKey();
+                    isRunning = false;
+                    return;
+                }
             }
         }
     }

@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TheYellowHouse
+﻿namespace TheYellowHouse
 {
     class Enemy
     {
-        private string name;
-        private int health;
-        private int armorClass;
-        private int damage;
-        private string description;
+        private string name, description;
+        private int health, armorClass, damage, score;
         private bool isAlive;
 
-
-        public Enemy(string _name, int _health, int _armorClass, int _damage, string _description, bool _isAlive)
+        public Enemy(string _name, int _health, int _armorClass, int _damage, string _description, bool _isAlive, int _score)
         {
             name = _name;
             health = _health;
@@ -22,6 +14,7 @@ namespace TheYellowHouse
             damage = _damage;
             description = _description;
             isAlive = _isAlive;
+            score = _score;
         }
 
         public string Name
@@ -54,6 +47,11 @@ namespace TheYellowHouse
         {
             get { return isAlive; }
             set { isAlive = value; }
+        }
+
+        public int Score
+        {
+            get { return score; }
         }
     }
 }

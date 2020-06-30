@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TheYellowHouse
+﻿namespace TheYellowHouse
 {
 	class Program
 	{
-
-
 		static void Main(string[] args)
 		{
-
 			Game _Game = new Game();
 
 			//start our game loop - we keep running this function until the player quits.
@@ -20,7 +11,6 @@ namespace TheYellowHouse
 			{
 				_Game.Update();
 			}
-
 		}
 	}
 }

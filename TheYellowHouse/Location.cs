@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace TheYellowHouse
 {
+	[Serializable]
 	class Location
 	{
-		private string roomTitle;
-		private string roomDescription;
+		private string roomTitle, roomDescription;
 		private List<Exit> exits;
 		private List<Item> inventory;
 		private List<Enemy> enemies;

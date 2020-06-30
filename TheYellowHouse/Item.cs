@@ -1,21 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TheYellowHouse
+﻿namespace TheYellowHouse
 {
     class Item
     {
 
-        public string name;
-        private bool useable;
-        private bool needsItem;
-        private string description;
-        private bool equipable;
+        private string name, description, type;
+        private bool useable, equipable;
         private int rating;
-        private string type;
 
         public Item(string _name, bool canUse, string _description)
         {
